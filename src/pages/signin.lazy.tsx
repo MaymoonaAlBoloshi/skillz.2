@@ -30,7 +30,7 @@ export const Route = createLazyFileRoute("/signin")({
  * @returns
  */
 const updateProfileFromOAuth2 = async (
-  authData: RecordAuthResponse<UsersResponse>
+  authData: RecordAuthResponse<UsersResponse>,
 ) => {
   const meta = authData.meta;
 
@@ -53,7 +53,7 @@ const updateProfileFromOAuth2 = async (
     formData.append("name", meta.name);
   }
 
-  await pb.collection("users").update(authData.record.id, formData);
+  await pb.collection("mentee").update(authData.record.id, formData);
 };
 
 const UserLoginForm = () => {
@@ -72,7 +72,7 @@ const UserLoginForm = () => {
         if (isAdmin) {
           await pb.admins.authWithPassword(email, password);
         } else {
-          await pb.collection("users").authWithPassword(email, password);
+          await pb.collection("mentee").authWithPassword(email, password);
         }
 
         navigate({ to: getRedirectAfterSignIn() });
@@ -130,9 +130,9 @@ const UserCreateForm = () => {
         };
 
         try {
-          await pb.collection("users").create(data);
-          await pb.collection("users").requestVerification(email);
-          await pb.collection("users").authWithPassword(email, password);
+          await pb.collection("mentee").create(data);
+          await pb.collection("mentee").requestVerification(email);
+          await pb.collection("mentee").authWithPassword(email, password);
           navigate({ to: getRedirectAfterSignIn() });
         } catch (error) {
           console.error(error);
@@ -192,7 +192,7 @@ function LoginForm() {
   const navigate = useNavigate();
 
   const [authProviders, setAuthProviders] = useState<AuthMethodsList | null>(
-    null
+    null,
   );
 
   const hasPasswordAuth: boolean = !!(
@@ -201,7 +201,7 @@ function LoginForm() {
   const hasSocialAuth: boolean = !!authProviders?.authProviders?.length;
 
   useEffect(() => {
-    pb.collection("users")
+    pb.collection("mentee")
       .listAuthMethods()
       .then((result) => {
         setAuthProviders(result);

@@ -1,5 +1,12 @@
 import { createLazyFileRoute } from "@tanstack/react-router";
 import Layout from "@/components/layout/Layout";
+import { Hero } from "@/components/Hero";
+import { Footer } from "@/components/Footer";
+import { Navbar } from "@/components/Navbar";
+import { HowItWorks } from "@/components/HowItWorks";
+import { Services } from "@/components/Services";
+import { Cta } from "@/components/Cta";
+import { Testimonials } from "@/components/Testemonials";
 
 export const Route = createLazyFileRoute("/")({
   component: Index,
@@ -8,9 +15,13 @@ export const Route = createLazyFileRoute("/")({
 function Index() {
   return (
     <Layout>
-      <h1 className="mb-16 text-center bg-gradient-to-b from-pink-900 via-pink-800 to-pink-400 bg-clip-text text-transparent text-5xl font-extrabold">
-        Welcome to Pocket SaaS
-      </h1>
+      <Navbar />
+      <Hero />
+      <HowItWorks />
+      <Services />
+      <Cta />
+      <Testimonials />
+      <Footer />
     </Layout>
   );
 }
