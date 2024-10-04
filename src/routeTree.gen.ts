@@ -14,6 +14,7 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { Route as rootRoute } from './pages/__root'
 import { Route as ProtectedImport } from './pages/protected'
+import { Route as DashbaordImport } from './pages/dashbaord'
 
 // Create Virtual Routes
 
@@ -32,6 +33,11 @@ const ProtectedRoute = ProtectedImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const DashbaordRoute = DashbaordImport.update({
+  path: '/dashbaord',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const IndexLazyRoute = IndexLazyImport.update({
   path: '/',
   getParentRoute: () => rootRoute,
@@ -46,6 +52,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexLazyImport
+      parentRoute: typeof rootRoute
+    }
+    '/dashbaord': {
+      id: '/dashbaord'
+      path: '/dashbaord'
+      fullPath: '/dashbaord'
+      preLoaderRoute: typeof DashbaordImport
       parentRoute: typeof rootRoute
     }
     '/protected': {
@@ -69,6 +82,7 @@ declare module '@tanstack/react-router' {
 
 export const routeTree = rootRoute.addChildren({
   IndexLazyRoute,
+  DashbaordRoute,
   ProtectedRoute,
   SigninLazyRoute,
 })
@@ -82,12 +96,16 @@ export const routeTree = rootRoute.addChildren({
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/dashbaord",
         "/protected",
         "/signin"
       ]
     },
     "/": {
       "filePath": "index.lazy.tsx"
+    },
+    "/dashbaord": {
+      "filePath": "dashbaord.tsx"
     },
     "/protected": {
       "filePath": "protected.tsx"

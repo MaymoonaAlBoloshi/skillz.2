@@ -16,4 +16,4 @@ export const protectPage = (location: ParsedLocation) => {
 };
 
 export const getRedirectAfterSignIn = () =>
-  new URLSearchParams(location.search).get(REDIRECT_PARAM) || "/";
+  new URLSearchParams(location.search).get(REDIRECT_PARAM) || "/dashbaord";

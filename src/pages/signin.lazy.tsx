@@ -59,6 +59,13 @@ const updateProfileFromOAuth2 = async (
 const UserLoginForm = () => {
   const navigate = useNavigate();
 
+  // if user is already signed in, redirect to the home page
+  useEffect(() => {
+    if (pb.collection("mentee").client.authStore.isValid) {
+      navigate({ to: getRedirectAfterSignIn() });
+    }
+  }, []);
+
   return (
     <form
       onSubmit={async (event) => {
@@ -228,7 +235,7 @@ function LoginForm() {
               variant="outline"
               onClick={async () => {
                 const authData = await pb
-                  .collection("users")
+                  .collection("mentee")
                   .authWithOAuth2({ provider: provider.name });
 
                 await updateProfileFromOAuth2(authData);

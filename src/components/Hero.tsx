@@ -1,7 +1,6 @@
 import { Button } from "./ui/button";
-import { buttonVariants } from "./ui/button";
 import { HeroCards } from "./HeroCards";
-import { GitHubLogoIcon } from "@radix-ui/react-icons";
+import { useNavigate, Link } from "@tanstack/react-router";
 
 export const Hero = () => {
   return (
@@ -44,7 +43,8 @@ export const Hero = () => {
         </p>
 
         <div className="space-y-4 md:space-y-0 md:space-x-4">
-          <Button
+          <Link
+            to="/signin"
             className="
     w-full md:w-1/3
     py-3 px-6
@@ -57,7 +57,7 @@ export const Hero = () => {
   "
           >
             Get Started
-          </Button>
+          </Link>
         </div>
       </div>
 
