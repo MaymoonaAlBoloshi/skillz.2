@@ -15,6 +15,9 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Route as rootRoute } from './pages/__root'
 import { Route as ProtectedImport } from './pages/protected'
 import { Route as DashbaordImport } from './pages/dashbaord'
+import { Route as MentorDashImport } from './pages/mentor/dash'
+import { Route as MenteeDashImport } from './pages/mentee/dash'
+import { Route as AdminDashImport } from './pages/admin/dash'
 
 // Create Virtual Routes
 
@@ -42,6 +45,21 @@ const IndexLazyRoute = IndexLazyImport.update({
   path: '/',
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./pages/index.lazy').then((d) => d.Route))
+
+const MentorDashRoute = MentorDashImport.update({
+  path: '/mentor/dash',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const MenteeDashRoute = MenteeDashImport.update({
+  path: '/mentee/dash',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AdminDashRoute = AdminDashImport.update({
+  path: '/admin/dash',
+  getParentRoute: () => rootRoute,
+} as any)
 
 // Populate the FileRoutesByPath interface
 
@@ -75,6 +93,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SigninLazyImport
       parentRoute: typeof rootRoute
     }
+    '/admin/dash': {
+      id: '/admin/dash'
+      path: '/admin/dash'
+      fullPath: '/admin/dash'
+      preLoaderRoute: typeof AdminDashImport
+      parentRoute: typeof rootRoute
+    }
+    '/mentee/dash': {
+      id: '/mentee/dash'
+      path: '/mentee/dash'
+      fullPath: '/mentee/dash'
+      preLoaderRoute: typeof MenteeDashImport
+      parentRoute: typeof rootRoute
+    }
+    '/mentor/dash': {
+      id: '/mentor/dash'
+      path: '/mentor/dash'
+      fullPath: '/mentor/dash'
+      preLoaderRoute: typeof MentorDashImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -85,6 +124,9 @@ export const routeTree = rootRoute.addChildren({
   DashbaordRoute,
   ProtectedRoute,
   SigninLazyRoute,
+  AdminDashRoute,
+  MenteeDashRoute,
+  MentorDashRoute,
 })
 
 /* prettier-ignore-end */
@@ -98,7 +140,10 @@ export const routeTree = rootRoute.addChildren({
         "/",
         "/dashbaord",
         "/protected",
-        "/signin"
+        "/signin",
+        "/admin/dash",
+        "/mentee/dash",
+        "/mentor/dash"
       ]
     },
     "/": {
@@ -112,6 +157,15 @@ export const routeTree = rootRoute.addChildren({
     },
     "/signin": {
       "filePath": "signin.lazy.tsx"
+    },
+    "/admin/dash": {
+      "filePath": "admin/dash.tsx"
+    },
+    "/mentee/dash": {
+      "filePath": "mentee/dash.tsx"
+    },
+    "/mentor/dash": {
+      "filePath": "mentor/dash.tsx"
     }
   }
 }

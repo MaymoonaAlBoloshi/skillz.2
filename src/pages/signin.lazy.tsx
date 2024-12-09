@@ -15,19 +15,36 @@ import { Label } from "@/components/ui/label";
 import { pb } from "@/lib/pocketbase";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
-import { getRedirectAfterSignIn } from "@/lib/auth";
 import { UsersResponse } from "@/lib/pocketbase-types";
 
+// Define the route for the sign-in page
 export const Route = createLazyFileRoute("/signin")({
   component: LoginForm,
 });
 
 /**
- * Look for the user name and avatar in the OAuth2 provider's response and update the user's
- * profile.
+ * Function to map user roles to their respective dashboard paths.
  *
- * @param authData data returned from the OAuth2 provider after successful authentication
- * @returns
+ * @param {string} role - The role of the user ('admin', 'mentor', 'mentee').
+ * @returns {string} - The dashboard path corresponding to the user's role.
+ */
+const getDashboardPath = (role) => {
+  switch (role) {
+    case "admin":
+      return "/admin/dash";
+    case "mentor":
+      return "/mentor/dash";
+    case "mentee":
+      return "/mentee/dash";
+    default:
+      return "/";
+  }
+};
+
+/**
+ * Update the user's profile with data from OAuth2 provider.
+ *
+ * @param {RecordAuthResponse<UsersResponse>} authData - The authentication data returned from OAuth2.
  */
 const updateProfileFromOAuth2 = async (
   authData: RecordAuthResponse<UsersResponse>,
@@ -53,39 +70,63 @@ const updateProfileFromOAuth2 = async (
     formData.append("name", meta.name);
   }
 
-  await pb.collection("mentee").update(authData.record.id, formData);
+  await pb.collection("users").update(authData.record.id, formData);
 };
 
-const UserLoginForm = () => {
+/**
+ * Base Login Form Component
+ *
+ * @param {Object} props - Component props.
+ * @param {string} props.role - The role associated with this login form.
+ */
+const BaseLoginForm = ({ role }) => {
   const navigate = useNavigate();
+  const [error, setError] = useState("");
 
-  // if user is already signed in, redirect to the home page
   useEffect(() => {
-    if (pb.collection("mentee").client.authStore.isValid) {
-      navigate({ to: getRedirectAfterSignIn() });
+    // Redirect if already authenticated
+    if (pb.authStore.isValid) {
+      const user = pb.authStore.model;
+      if (user && user.role) {
+        navigate({ to: getDashboardPath(user.role) });
+      }
     }
-  }, []);
+  }, [navigate]);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError("");
+    const form = event.target;
+    const email = form.email.value;
+    const password = form.password.value;
+
+    try {
+      // Authenticate using the users collection
+      const authData = await pb
+        .collection("users")
+        .authWithPassword(email, password);
+
+      // Check if the user's role matches the selected role
+      const userRole = authData.record.role;
+      if (userRole !== role) {
+        await pb.authStore.clear();
+        setError(`User does not have the role: ${role}`);
+        return;
+      }
+
+      // Update profile from OAuth2 if needed
+      await updateProfileFromOAuth2(authData);
+
+      // Navigate to the respective dashboard
+      navigate({ to: getDashboardPath(userRole) });
+    } catch (error) {
+      console.error("Authentication error:", error);
+      setError("Invalid email or password.");
+    }
+  };
 
   return (
-    <form
-      onSubmit={async (event) => {
-        event.preventDefault();
-        const form = event.target as HTMLFormElement;
-        const email = form.email.value;
-        const password = form.password.value;
-        const isAdmin = form["admin-auth"][1].checked;
-        console.log(form["admin-auth"]);
-
-        if (isAdmin) {
-          await pb.admins.authWithPassword(email, password);
-        } else {
-          await pb.collection("mentee").authWithPassword(email, password);
-        }
-
-        navigate({ to: getRedirectAfterSignIn() });
-      }}
-      className="flex flex-col gap-4"
-    >
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div className="grid gap-2">
         <Label htmlFor="email">Email</Label>
         <Input
@@ -102,99 +143,18 @@ const UserLoginForm = () => {
         <Input id="password" name="password" type="password" required />
       </div>
 
-      <div className="flex items-center space-x-2">
-        <Checkbox id="admin-auth" name="admin-auth" />
-        <label
-          htmlFor="admin-auth"
-          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-        >
-          Admin
-        </label>
-      </div>
+      {error && <div className="text-red-500 text-sm">{error}</div>}
 
       <Button type="submit" className="w-full">
-        Sign in
+        Sign in as {role.charAt(0).toUpperCase() + role.slice(1)}
       </Button>
     </form>
   );
 };
 
-const UserCreateForm = () => {
-  const navigate = useNavigate();
-
-  return (
-    <form
-      onSubmit={async (event) => {
-        event.preventDefault();
-        const form = event.target as HTMLFormElement;
-        const email = form.email.value;
-        const password = form.password.value;
-
-        const data = {
-          email,
-          password,
-          passwordConfirm: password,
-        };
-
-        try {
-          await pb.collection("mentee").create(data);
-          await pb.collection("mentee").requestVerification(email);
-          await pb.collection("mentee").authWithPassword(email, password);
-          navigate({ to: getRedirectAfterSignIn() });
-        } catch (error) {
-          console.error(error);
-        }
-      }}
-      className="flex flex-col gap-4"
-    >
-      <div className="grid gap-2">
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          name="email"
-          placeholder="your@email.com"
-          required
-        />
-      </div>
-      <div className="grid gap-2">
-        <Label htmlFor="password">Password</Label>
-        <Input
-          id="password"
-          name="password"
-          type="password"
-          required
-          minLength={8}
-        />
-      </div>
-
-      <Button type="submit" className="w-full">
-        Create account
-      </Button>
-    </form>
-  );
-};
-
-const UserAuthForm = () => {
-  const [isSignIn, setIsSignIn] = useState(true);
-
-  return (
-    <>
-      <CardDescription>
-        Use your email and password to access your account.
-      </CardDescription>
-
-      <div className="flex justify-end">
-        <Button onClick={() => setIsSignIn(!isSignIn)} variant="link">
-          {isSignIn ? "Create an account" : "Login with your existing account"}
-        </Button>
-      </div>
-
-      {isSignIn ? <UserLoginForm /> : <UserCreateForm />}
-    </>
-  );
-};
-
+/**
+ * Main Login Form with Tabs
+ */
 function LoginForm() {
   const navigate = useNavigate();
 
@@ -207,55 +167,119 @@ function LoginForm() {
   );
   const hasSocialAuth: boolean = !!authProviders?.authProviders?.length;
 
+  const [activeTab, setActiveTab] = useState("mentee"); // Default to Mentee
+  const [error, setError] = useState("");
+
   useEffect(() => {
-    pb.collection("mentee")
+    // Fetch auth methods from the users collection
+    pb.collection("users")
       .listAuthMethods()
       .then((result) => {
         setAuthProviders(result);
+      })
+      .catch((error) => {
+        console.error("Error fetching auth methods:", error);
       });
+
+    // Check if user is already authenticated and redirect accordingly
+    if (pb.authStore.isValid) {
+      const user = pb.authStore.model;
+      if (user && user.role) {
+        navigate({ to: getDashboardPath(user.role) });
+      }
+    }
   }, [navigate]);
+
+  /**
+   * Handle social login based on the active tab's role.
+   *
+   * @param {Object} provider - The OAuth2 provider information.
+   */
+  const handleSocialLogin = async (provider) => {
+    setError("");
+    try {
+      const authData = await pb.collection("users").authWithOAuth2({
+        provider: provider.name,
+      });
+
+      // Check if the user's role matches the selected role
+      const userRole = authData.record.role;
+      if (userRole !== activeTab) {
+        // If roles don't match, log out and show error
+        await pb.authStore.clear();
+        setError(`User does not have the role: ${activeTab}`);
+        return;
+      }
+
+      await updateProfileFromOAuth2(authData);
+
+      // Navigate to the respective dashboard
+      navigate({ to: getDashboardPath(userRole) });
+    } catch (error) {
+      console.error("Social Authentication error:", error);
+      setError("Social authentication failed.");
+    }
+  };
 
   return (
     <div className="flex justify-center items-center h-screen">
-      <Card className="w-full max-w-sm">
+      <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl">Login</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4">
+          {/* Tab Navigation */}
+          <div className="flex space-x-4 mb-4">
+            {["admin", "mentor", "mentee"].map((tab) => (
+              <Button
+                key={tab}
+                variant={activeTab === tab ? "default" : "outline"}
+                onClick={() => {
+                  setActiveTab(tab);
+                  setError("");
+                }}
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </Button>
+            ))}
+          </div>
+
+          {/* Social Authentication */}
           {hasSocialAuth && (
-            <CardDescription>
-              Login with one of the following providers.
-            </CardDescription>
+            <>
+              <CardDescription>
+                Login with one of the following providers.
+              </CardDescription>
+
+              {authProviders?.authProviders.map((provider) => (
+                <Button
+                  key={provider.name}
+                  className="w-full"
+                  variant="outline"
+                  onClick={() => handleSocialLogin(provider)}
+                >
+                  <img
+                    src={`${pb.baseUrl}_/images/oauth2/${provider.name}.svg`}
+                    className="h-4 w-4 mr-4"
+                    alt={`${provider.name} icon`}
+                  />
+                  Sign in with {provider.displayName}
+                </Button>
+              ))}
+
+              <Separator />
+            </>
           )}
 
-          {authProviders?.authProviders.map((provider) => (
-            <Button
-              key={provider.name}
-              className="w-full"
-              variant="outline"
-              onClick={async () => {
-                const authData = await pb
-                  .collection("mentee")
-                  .authWithOAuth2({ provider: provider.name });
+          {/* Display Error if Any */}
+          {error && <div className="text-red-500 text-sm">{error}</div>}
 
-                await updateProfileFromOAuth2(authData);
-
-                navigate({ to: getRedirectAfterSignIn() });
-              }}
-            >
-              <img
-                src={`${pb.baseUrl}_/images/oauth2/${provider.name}.svg`}
-                className="h-4 w-4 mr-4"
-              />
-              Sign in with {provider.displayName}
-            </Button>
-          ))}
-
-          {hasPasswordAuth && hasSocialAuth && <Separator />}
-
-          {hasPasswordAuth && <UserAuthForm />}
+          {/* Role-Specific Login Form */}
+          {hasPasswordAuth && <BaseLoginForm role={activeTab} />}
         </CardContent>
       </Card>
     </div>
   );
 }
+
+export default Route;
