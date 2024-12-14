@@ -1,5 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import Layout from "@/components/layout/Layout";
+import { Button } from "@/components/ui/button";
 import { protectPage } from "@/lib/auth";
 import { pb } from "@/lib/pocketbase";
 
@@ -24,12 +25,17 @@ export const Route = createFileRoute("/mentor/dash")({
 
 function Index() {
   const user = pb.authStore.model;
+  const navigate = useNavigate();
 
   const {
     data: menteeList,
     isLoading,
     isError,
   } = useMenteeList(user?.["mentee_list"]);
+
+  const handleViewClick = (menteeId: string) => {
+    navigate({ to: `/mentor-mentee/${menteeId}` });
+  };
 
   if (isLoading)
     return (
@@ -62,6 +68,9 @@ function Index() {
               <TableCell>{mentee.id}</TableCell>
               <TableCell>{mentee.name}</TableCell>
               <TableCell>{mentee.email}</TableCell>
+              <TableCell>
+                <Button onClick={() => handleViewClick(mentee.id)}>View</Button>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>

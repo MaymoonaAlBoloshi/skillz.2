@@ -16,6 +16,7 @@ import { Route as rootRoute } from './pages/__root'
 import { Route as ProtectedImport } from './pages/protected'
 import { Route as DashbaordImport } from './pages/dashbaord'
 import { Route as MentorDashImport } from './pages/mentor/dash'
+import { Route as MentorMenteePageImport } from './pages/mentor-mentee/$page'
 import { Route as MenteeDashImport } from './pages/mentee/dash'
 import { Route as AdminDashImport } from './pages/admin/dash'
 
@@ -48,6 +49,11 @@ const IndexLazyRoute = IndexLazyImport.update({
 
 const MentorDashRoute = MentorDashImport.update({
   path: '/mentor/dash',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const MentorMenteePageRoute = MentorMenteePageImport.update({
+  path: '/mentor-mentee/$page',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -107,6 +113,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MenteeDashImport
       parentRoute: typeof rootRoute
     }
+    '/mentor-mentee/$page': {
+      id: '/mentor-mentee/$page'
+      path: '/mentor-mentee/$page'
+      fullPath: '/mentor-mentee/$page'
+      preLoaderRoute: typeof MentorMenteePageImport
+      parentRoute: typeof rootRoute
+    }
     '/mentor/dash': {
       id: '/mentor/dash'
       path: '/mentor/dash'
@@ -126,6 +139,7 @@ export const routeTree = rootRoute.addChildren({
   SigninLazyRoute,
   AdminDashRoute,
   MenteeDashRoute,
+  MentorMenteePageRoute,
   MentorDashRoute,
 })
 
@@ -143,6 +157,7 @@ export const routeTree = rootRoute.addChildren({
         "/signin",
         "/admin/dash",
         "/mentee/dash",
+        "/mentor-mentee/$page",
         "/mentor/dash"
       ]
     },
@@ -163,6 +178,9 @@ export const routeTree = rootRoute.addChildren({
     },
     "/mentee/dash": {
       "filePath": "mentee/dash.tsx"
+    },
+    "/mentor-mentee/$page": {
+      "filePath": "mentor-mentee/$page.tsx"
     },
     "/mentor/dash": {
       "filePath": "mentor/dash.tsx"
