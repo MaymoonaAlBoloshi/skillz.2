@@ -1,6 +1,7 @@
 import { createLazyFileRoute, useNavigate } from "@tanstack/react-router";
 import { AuthMethodsList, RecordAuthResponse } from "pocketbase";
 import { useEffect, useState } from "react";
+import { useStore } from "zustand";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +15,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { pb } from "@/lib/pocketbase";
 import { Separator } from "@/components/ui/separator";
-import { Checkbox } from "@/components/ui/checkbox";
 import { UsersResponse } from "@/lib/pocketbase-types";
 
 // Define the route for the sign-in page
@@ -22,12 +22,6 @@ export const Route = createLazyFileRoute("/signin")({
   component: LoginForm,
 });
 
-/**
- * Function to map user roles to their respective dashboard paths.
- *
- * @param {string} role - The role of the user ('admin', 'mentor', 'mentee').
- * @returns {string} - The dashboard path corresponding to the user's role.
- */
 const getDashboardPath = (role) => {
   switch (role) {
     case "admin":
@@ -41,11 +35,6 @@ const getDashboardPath = (role) => {
   }
 };
 
-/**
- * Update the user's profile with data from OAuth2 provider.
- *
- * @param {RecordAuthResponse<UsersResponse>} authData - The authentication data returned from OAuth2.
- */
 const updateProfileFromOAuth2 = async (
   authData: RecordAuthResponse<UsersResponse>,
 ) => {
@@ -54,7 +43,7 @@ const updateProfileFromOAuth2 = async (
   if (!meta) {
     return;
   }
-
+  // TODO: add meta to zustand store
   const formData = new FormData();
 
   if (meta.avatarUrl) {
@@ -73,12 +62,6 @@ const updateProfileFromOAuth2 = async (
   await pb.collection("users").update(authData.record.id, formData);
 };
 
-/**
- * Base Login Form Component
- *
- * @param {Object} props - Component props.
- * @param {string} props.role - The role associated with this login form.
- */
 const BaseLoginForm = ({ role }) => {
   const navigate = useNavigate();
   const [error, setError] = useState("");
@@ -190,11 +173,6 @@ function LoginForm() {
     }
   }, [navigate]);
 
-  /**
-   * Handle social login based on the active tab's role.
-   *
-   * @param {Object} provider - The OAuth2 provider information.
-   */
   const handleSocialLogin = async (provider) => {
     setError("");
     try {
@@ -228,7 +206,6 @@ function LoginForm() {
           <CardTitle className="text-2xl">Login</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4">
-          {/* Tab Navigation */}
           <div className="flex space-x-4 mb-4">
             {["admin", "mentor", "mentee"].map((tab) => (
               <Button
@@ -271,10 +248,7 @@ function LoginForm() {
             </>
           )}
 
-          {/* Display Error if Any */}
           {error && <div className="text-red-500 text-sm">{error}</div>}
-
-          {/* Role-Specific Login Form */}
           {hasPasswordAuth && <BaseLoginForm role={activeTab} />}
         </CardContent>
       </Card>

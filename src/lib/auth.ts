@@ -26,11 +26,7 @@ export const protectPage = (location, allowedRoles = []) => {
     });
   }
 
-  console.log("test", pb.authStore.model);
-  console.log("alowedRoles", allowedRoles);
-  // User is authenticated, check for role authorization if required
   if (allowedRoles.length > 0) {
-    // console.log("test", pb.authStore.model);
     const user = pb.authStore.model;
     if (!user || !user.role || !allowedRoles.includes(user.role)) {
       // User does not have the required role, redirect to their dashboard
