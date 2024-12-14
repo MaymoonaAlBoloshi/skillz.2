@@ -76,51 +76,50 @@ function Index() {
 
   return (
     <Layout>
-      <div className="p-6 space-y-6 bg-white rounded-lg shadow">
-        {/* Mentee Name */}
-        <h1 className="text-3xl font-bold text-gray-800">{mentee.name}</h1>
-
-        {/* Mentee Bio */}
-        <p className="text-gray-600">{mentee.bio}</p>
-
-        {/* Domain */}
-        <div className="flex items-center space-x-2">
-          <span className="px-3 py-1 text-sm font-medium text-white bg-blue-500 rounded">
-            {mentee.domain}
-          </span>
+      <div className="px-8 space-y-8 bg-gray-50">
+        <div className="p-6 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg shadow text-white">
+          <h1 className="text-4xl font-bold mb-2">{mentee.name}</h1>
+          <p className="text-lg">{mentee.bio}</p>
+          <div className="mt-4">
+            <span className="px-4 py-2 text-sm font-medium bg-white text-blue-600 rounded-full shadow">
+              {mentee.domain}
+            </span>
+          </div>
         </div>
 
-        {/* Radar Chart */}
-        <div className="mt-6">
-          <h2 className="mb-4 text-xl font-semibold text-gray-800">
-            Skill Proficiency
-          </h2>
-          <Radar data={radarData} options={radarOptions} />
-        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="p-6 bg-white rounded-lg shadow">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              Skill Proficiency
+            </h2>
+            <Radar data={radarData} options={radarOptions} />
+          </div>
 
-        {/* Skill List */}
-        <div className="mt-6">
-          <h2 className="mb-4 text-xl font-semibold text-gray-800">
-            Skill List
-          </h2>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Skill</TableHead>
-                <TableHead>Proficiency</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {skillNames.map((skill) => (
-                <TableRow key={skill}>
-                  <TableCell>{skill}</TableCell>
-                  <TableCell>{skillLevels[skill]}</TableCell>
+          <div className="p-6 bg-white rounded-lg shadow">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              Skill List
+            </h2>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Skill</TableHead>
+                  <TableHead>Proficiency</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {skillNames.map((skill) => (
+                  <TableRow key={skill}>
+                    <TableCell>{skill}</TableCell>
+                    <TableCell>{skillLevels[skill]}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </div>
     </Layout>
   );
 }
+
+export default Index;
